@@ -613,7 +613,9 @@ begin
 		end;
 	end;
 	if not Result then exit(false);
+	Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: getDirListingFromJSON ' + JSON);
 	DirListing := self.getDirListingFromJSON(JSON);
+	Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: getDirListingFromJSON done');
 end;
 
 function TCloudMailRu.getFile(remotePath, localPath: WideString): integer; // 0 - ok, else error
