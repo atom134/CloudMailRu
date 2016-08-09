@@ -470,32 +470,52 @@ begin
 	GlobalPath := path;
 	if GlobalPath = '\' then
 	begin // список соединений
-		Sections := TStringList.Create;
+		try
+			MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Section init');
+			Sections := TStringList.Create;
+		except
+			on E: Exception do
+			begin
+				MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, PWideChar('DEBUG: Section init error: Exception ' + E.Message));
+			end;
+
+		end;
+		MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Accounts list');
 		GetAccountsListFromIniFile(AccountsIniFilePath, Sections);
 
 		if (Sections.Count > 0) then
 		begin
+			MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, PWideChar('DEBUG: Found ' + Sections.Count.ToString() + ' accounts'));
 			FindData := FindData_emptyDir(Sections.Strings[0]);
 			FileCounter := 1;
 		end else begin
+			MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: No accounts found');
 			Result := INVALID_HANDLE_VALUE; // Нельзя использовать exit
 			SetLastError(ERROR_NO_MORE_FILES);
 		end;
+		MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Section free');
 		Sections.Free;
 	end else begin
+		MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, PWideChar('DEBUG: Extracting real path from ' + GlobalPath));
 		RealPath := ExtractRealPath(GlobalPath);
 
 		if RealPath.account = '' then RealPath.account := ExtractFileName(ExcludeTrailingBackslash(GlobalPath));
-
+		MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Reading remote dir');
 		if not ConnectionManager.get(RealPath.account, getResult).getDir(RealPath.path, CurrentListing) then SetLastError(ERROR_PATH_NOT_FOUND);
-		if getResult <> CLOUD_OPERATION_OK then exit(getResult);
+		if getResult <> CLOUD_OPERATION_OK then
+		begin
+			MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Reading remote dir error, exitting');
+			exit(getResult);
+		end;
 
 		if Length(CurrentListing) = 0 then
 		begin
+			MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Remote dir is empty');
 			FindData := FindData_emptyDir(); // воркароунд бага с невозможностью входа в пустой каталог, см. http://www.ghisler.ch/board/viewtopic.php?t=42399
 			Result := 0;
 			SetLastError(ERROR_NO_MORE_FILES);
 		end else begin
+			MyLogProc(PluginNum, MSGTYPE_IMPORTANTERROR, 'DEBUG: Reading first found item');
 			FindData := CloudMailRuDirListingItemToFindData(CurrentListing[0]);
 			FileCounter := 1;
 			Result := 1;
