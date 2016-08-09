@@ -450,8 +450,13 @@ var
 	Socks: TIdSocksInfo;
 begin
 	try
+		Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: Getting ' + Answer);
+		Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: HTTP init');
 		self.HTTPInit(HTTP, SSL, Socks, self.Cookie);
+		Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: HTTP init done, requesting...');
 		Answer := HTTP.Get(URL);
+		Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: requesting done, server answer: ' + Answer);
+		Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: Freeing HTTP');
 		self.HTTPDestroy(HTTP, SSL, Socks);
 	Except
 		on E: Exception do
@@ -492,16 +497,21 @@ end;
 
 procedure TCloudMailRu.HTTPInit(var HTTP: TIdHTTP; var SSL: TIdSSLIOHandlerSocketOpenSSL; var Socks: TIdSocksInfo; var Cookie: TIdCookieManager);
 begin
+	Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: SSL create');
 	SSL := TIdSSLIOHandlerSocketOpenSSL.Create();
+	Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: HTTP create');
 	HTTP := TIdHTTP.Create();
 
 	if self.Socks.Enabled then
 	begin
+		Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: Socks attaching');
 		// self.Socks.Owner := SSL;
 		SSL.TransparentProxy := self.Socks;
 	end;
 
+	Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: Cookie attaching');
 	HTTP.CookieManager := Cookie;
+	Log(MSGTYPE_IMPORTANTERROR, 'DEBUG: SSL attaching');
 	HTTP.IOHandler := SSL;
 
 	HTTP.AllowCookies := true;
