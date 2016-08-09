@@ -47,13 +47,33 @@ var
 	PluginNum: integer;
 	CryptoNum: integer;
 	MyProgressProc: TProgressProcW;
-	MyLogProc: TLogProcW;
+ //	MyLogProc: TLogProcW;
 	MyRequestProc: TRequestProcW;
 	MyCryptProc: TCryptProcW;
 
 	CurrentListing: TCloudMailRuDirListing;
 
 	ConnectionManager: TConnectionManager;
+
+procedure MyLogProc(PluginNr, MsgType: integer; LogString: WideString); stdcall;
+var
+	T: TextFile;
+	FN: String;
+begin
+	FN := PluginPath + 'debug.log';
+	if (not FileExists(FN)) then
+	begin
+		AssignFile(T, FN);
+		Rewrite(T);
+		CloseFile(T);
+	end;
+
+	AssignFile(T, FN);
+	Append(T);
+	WriteLn(T, LogString);
+	CloseFile(T)
+
+end;
 
 function CloudMailRuDirListingItemToFindData(DirListing: TCloudMailRuDirListingItem): tWIN32FINDDATAW;
 begin
@@ -302,10 +322,10 @@ function FsInitW(PluginNr: integer; pProgressProc: TProgressProcW; pLogProc: TLo
 Begin
 	PluginNum := PluginNr;
 	MyProgressProc := pProgressProc;
-	MyLogProc := pLogProc;
+//	MyLogProc := pLogProc;
 	MyRequestProc := pRequestProc;
 	Result := 0;
-	ConnectionManager := TConnectionManager.Create(AccountsIniFilePath, PluginNum, MyProgressProc, MyLogProc, GetPluginSettings(SettingsIniFilePath).Proxy);
+	ConnectionManager := TConnectionManager.Create(AccountsIniFilePath, PluginNum, MyProgressProc, @MyLogProc, GetPluginSettings(SettingsIniFilePath).Proxy);
 end;
 
 procedure FsStatusInfoW(RemoteDir: PWideChar; InfoStartEnd, InfoOperation: integer); stdcall; // Начало и конец операций FS
